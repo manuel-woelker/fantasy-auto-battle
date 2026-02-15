@@ -50,8 +50,8 @@ jobs:
 
       - name: Setup artifact directories
         run: |
-          mkdir -p artifact/app
-          cp -r ui/dist/* artifact/app/
+          mkdir -p artifact
+          cp -r ui/dist/* artifact/
           mkdir -p artifact/storybook
           cp -r ui/storybook-static/* artifact/storybook/
 
