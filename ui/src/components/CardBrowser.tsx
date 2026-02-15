@@ -23,6 +23,9 @@ const FilterBar = styled.div`
   background-color: #f5f0e6;
   border: 1px solid #d4c4a8;
   border-radius: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 `;
 
 const SearchInput = styled.input`
@@ -64,7 +67,7 @@ const FilterSelect = styled.select`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   width: 100%;
 `;
