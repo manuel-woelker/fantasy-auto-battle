@@ -1,1 +1,0 @@
-{"root":["./src/app.stories.tsx","./src/app.test.tsx","./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/shared/models/card.schema.ts","./src/shared/models/card.ts","./src/shared/models/cards.ts","./src/shared/models/index.ts","./src/shared/models/models.test.ts","./src/test/setup.ts","./src/types/assets.d.ts"],"version":"5.6.3"}
