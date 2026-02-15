@@ -48,17 +48,17 @@ jobs:
           cd ui
           pnpm build-storybook
 
-      - name: Upload app artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ui/dist
-          name: app
+      - name: Setup artifact directories
+        run: |
+          mkdir -p artifact/app
+          cp -r ui/dist/* artifact/app/
+          mkdir -p artifact/storybook
+          cp -r ui/storybook-static/* artifact/storybook/
 
-      - name: Upload storybook artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ui/storybook-static
-          name: storybook
+          path: artifact
 
   deploy:
     needs: build
@@ -67,14 +67,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy app to GitHub Pages
+      - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: app
-          destination_dir: app
-
-      - name: Deploy storybook to GitHub Pages
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: storybook
-          destination_dir: storybook
