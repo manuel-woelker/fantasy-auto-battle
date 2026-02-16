@@ -77,6 +77,12 @@ const faintDrop = keyframes`
   100% { opacity: 0.55; transform: translateY(6px) scale(0.98); }
 `;
 
+const damageFloat = keyframes`
+  0% { opacity: 0; transform: translateY(8px) scale(0.94); }
+  12% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-26px) scale(1.02); }
+`;
+
 const Root = styled.section`
   display: flex;
   flex-direction: column;
@@ -188,15 +194,18 @@ const TeamColumn = styled.div`
 
 const Slots = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, 200px);
   gap: 8px;
+  justify-content: center;
 `;
 
 const Slot = styled.div`
+  width: 200px;
   min-height: 290px;
   border-radius: 6px;
   background-color: transparent;
   padding: 6px;
+  position: relative;
 `;
 
 const AnimatedCardFrame = styled.div<{
@@ -209,6 +218,7 @@ const AnimatedCardFrame = styled.div<{
   width: 100%;
   display: flex;
   justify-content: center;
+  position: relative;
   border-radius: 6px;
   transition: opacity 0.2s ease;
   will-change: transform, opacity;
@@ -231,6 +241,28 @@ const AnimatedCardFrame = styled.div<{
       none
     `;
   }};
+`;
+
+const DamageIndicator = styled.div`
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(var(--damage-counter-rotate, 0deg));
+  z-index: 2;
+  pointer-events: none;
+`;
+
+const DamageText = styled.div<{ durationMs: number; delayMs: number }>`
+  font-size: 88px;
+  font-weight: 700;
+  color: #b62020;
+  opacity: 0;
+  text-shadow:
+    0 1px 0 #fff,
+    0 0 6px rgba(255, 255, 255, 0.9);
+  animation: ${(props) => css`
+    ${damageFloat} ${props.durationMs}ms ease-out ${props.delayMs}ms forwards
+  `};
 `;
 
 const EmptySlot = styled.div`
@@ -418,6 +450,40 @@ function getSlotAnimationType(
   return "none";
 }
 
+function getDamageTakenForSlot(
+  team: TeamKey,
+  lane: number,
+  slot: number,
+  currentEvent: CombatEvent | null,
+): number | null {
+  if (!currentEvent || currentEvent.type !== "attack") {
+    return null;
+  }
+
+  if (isMatchingRef(team, lane, slot, currentEvent.target)) {
+    return currentEvent.damageToTarget;
+  }
+
+  if (isMatchingRef(team, lane, slot, currentEvent.attacker)) {
+    return currentEvent.damageToAttacker;
+  }
+
+  return null;
+}
+
+function isAttackerSlot(
+  team: TeamKey,
+  lane: number,
+  slot: number,
+  currentEvent: CombatEvent | null,
+): boolean {
+  if (!currentEvent || currentEvent.type !== "attack") {
+    return false;
+  }
+
+  return isMatchingRef(team, lane, slot, currentEvent.attacker);
+}
+
 function getDelayBeforeNextEvent(
   currentIndex: number,
   events: CombatEvent[],
@@ -485,6 +551,14 @@ export function CombatComponent({
   const targetDurationMs = useMemo(
     () => TARGET_SHAKE_MS / playbackSpeed,
     [playbackSpeed],
+  );
+  const damageFloatDurationMs = useMemo(
+    () => Math.max(240, attackDurationMs * 1.6),
+    [attackDurationMs],
+  );
+  const damageFloatDelayMs = useMemo(
+    () => Math.max(0, attackDurationMs * 0.6),
+    [attackDurationMs],
   );
   const faintDurationMs = useMemo(
     () => FAINT_ANIMATION_MS / playbackSpeed,
@@ -680,33 +754,81 @@ export function CombatComponent({
                           slotIndex,
                           currentEvent,
                         );
+                        const damageTaken = getDamageTakenForSlot(
+                          teamKey,
+                          laneIndex,
+                          slotIndex,
+                          currentEvent,
+                        );
+                        const isCurrentAttacker = isAttackerSlot(
+                          teamKey,
+                          laneIndex,
+                          slotIndex,
+                          currentEvent,
+                        );
                         return (
                           <Slot key={`${teamKey}-${laneIndex}-${slotIndex}`}>
                             {!unit ? (
                               <EmptySlot>Empty Slot</EmptySlot>
                             ) : (
-                              <AnimatedCardFrame
-                                alive={unit.alive}
-                                animationType={animationType}
-                                attackDurationMs={attackDurationMs}
-                                targetDurationMs={targetDurationMs}
-                                faintDurationMs={faintDurationMs}
-                                data-testid={`${teamKey}-lane-${laneIndex}-slot-${slotIndex}`}
-                                ref={(node) => {
-                                  slotRefs.current[slotKey] = node;
-                                }}
-                                style={
-                                  motion
-                                    ? ({
-                                        "--attack-dx": `${motion.dx}px`,
-                                        "--attack-dy": `${motion.dy}px`,
-                                        "--attack-tilt": `${motion.tiltDeg}deg`,
-                                      } as CSSProperties)
-                                    : undefined
-                                }
-                              >
-                                <CardComponent card={unit.card} />
-                              </AnimatedCardFrame>
+                              <>
+                                {damageTaken &&
+                                damageTaken > 0 &&
+                                !isCurrentAttacker ? (
+                                  <DamageIndicator
+                                    data-testid={`damage-${teamKey}-${laneIndex}-${slotIndex}`}
+                                  >
+                                    <DamageText
+                                      durationMs={damageFloatDurationMs}
+                                      delayMs={damageFloatDelayMs}
+                                    >
+                                      -{damageTaken}
+                                    </DamageText>
+                                  </DamageIndicator>
+                                ) : null}
+                                <AnimatedCardFrame
+                                  alive={unit.alive}
+                                  animationType={animationType}
+                                  attackDurationMs={attackDurationMs}
+                                  targetDurationMs={targetDurationMs}
+                                  faintDurationMs={faintDurationMs}
+                                  data-testid={`${teamKey}-lane-${laneIndex}-slot-${slotIndex}`}
+                                  ref={(node) => {
+                                    slotRefs.current[slotKey] = node;
+                                  }}
+                                  style={
+                                    motion
+                                      ? ({
+                                          "--attack-dx": `${motion.dx}px`,
+                                          "--attack-dy": `${motion.dy}px`,
+                                          "--attack-tilt": `${motion.tiltDeg}deg`,
+                                        } as CSSProperties)
+                                      : undefined
+                                  }
+                                >
+                                  {damageTaken &&
+                                  damageTaken > 0 &&
+                                  isCurrentAttacker ? (
+                                    <DamageIndicator
+                                      data-testid={`damage-${teamKey}-${laneIndex}-${slotIndex}`}
+                                      style={
+                                        {
+                                          "--damage-counter-rotate":
+                                            "calc(var(--attack-tilt, 0deg) * -1)",
+                                        } as CSSProperties
+                                      }
+                                    >
+                                      <DamageText
+                                        durationMs={damageFloatDurationMs}
+                                        delayMs={damageFloatDelayMs}
+                                      >
+                                        -{damageTaken}
+                                      </DamageText>
+                                    </DamageIndicator>
+                                  ) : null}
+                                  <CardComponent card={unit.card} />
+                                </AnimatedCardFrame>
+                              </>
                             )}
                           </Slot>
                         );
