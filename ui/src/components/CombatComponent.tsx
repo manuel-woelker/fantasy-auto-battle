@@ -186,9 +186,8 @@ const Slots = styled.div`
 
 const Slot = styled.div`
   min-height: 290px;
-  border: 1px dashed #c5b090;
   border-radius: 6px;
-  background-color: #f6efe3;
+  background-color: transparent;
   padding: 6px;
 `;
 
@@ -517,8 +516,7 @@ export function CombatComponent({
     const contactDistance = (attackerRect.width + targetRect.width) / 2 - 16;
     const travelDistance = Math.max(0, distance - contactDistance);
     const travelScale = travelDistance / distance;
-    const angleDeg = (Math.atan2(rawDy, rawDx) * 180) / Math.PI;
-    const tiltDeg = Math.max(-30, Math.min(30, angleDeg * 0.12));
+    const tiltDeg = currentEvent.attacker.team === "teamA" ? 30 : -30;
 
     setAttackMotion({
       attackerKey,
