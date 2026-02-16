@@ -103,6 +103,14 @@ describe("CombatComponent", () => {
     expect(screen.getByTestId("step-label")).toHaveTextContent(
       `Step: 1 / ${result.events.length}`,
     );
+    expect(within(defenderSlot).getByText("🛡 2")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(220);
+    });
+    expect(screen.getByTestId("step-label")).toHaveTextContent(
+      `Step: 2 / ${result.events.length}`,
+    );
     expect(within(defenderSlot).getByText("🛡 0")).toBeInTheDocument();
   });
 

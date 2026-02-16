@@ -41,19 +41,27 @@ type SlotAnimation = "none" | "attacker" | "target" | "faint";
 const MIN_SPEED = 0.25;
 const MAX_SPEED = 4;
 const BASE_STEP_MS = 800;
+const ATTACK_ANIMATION_MS = 650;
+const TARGET_SHAKE_MS = 500;
+const FAINT_ANIMATION_MS = 160;
+const POST_ATTACK_BUFFER_MS = 24;
 
 const attackerPulse = keyframes`
-  0% { transform: translateX(0) scale(1); box-shadow: 0 0 0 rgba(255, 92, 74, 0); }
-  58% {
-    transform: translate(var(--attack-dx, 0px), var(--attack-dy, 0px)) rotate(var(--attack-tilt, 0deg)) scale(1.02);
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    box-shadow: 0 0 0 rgba(255, 92, 74, 0);
+  }
+  60% {
+    transform: translate3d(var(--attack-dx, 0px), var(--attack-dy, 0px), 0) rotate(var(--attack-tilt, 0deg)) scale(1.02);
     box-shadow: 0 0 0 7px rgba(255, 92, 74, 0.15);
   }
-  67% {
-    transform: translate(calc(var(--attack-dx, 0px) * 1.08), calc(var(--attack-dy, 0px) * 1.08))
-      rotate(calc(var(--attack-tilt, 0deg) * 0.75)) scale(1.01);
+  68% {
+    transform: translate3d(var(--attack-dx, 0px), var(--attack-dy, 0px), 0) rotate(var(--attack-tilt, 0deg)) scale(1.02);
   }
-  76% { transform: translate(var(--attack-dx, 0px), var(--attack-dy, 0px)) rotate(var(--attack-tilt, 0deg)) scale(1.02); }
-  100% { transform: translateX(0) scale(1); box-shadow: 0 0 0 rgba(255, 92, 74, 0); }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    box-shadow: 0 0 0 rgba(255, 92, 74, 0);
+  }
 `;
 
 const targetShake = keyframes`
@@ -194,28 +202,30 @@ const Slot = styled.div`
 const AnimatedCardFrame = styled.div<{
   alive: boolean;
   animationType: SlotAnimation;
+  attackDurationMs: number;
+  targetDurationMs: number;
+  faintDurationMs: number;
 }>`
   width: 100%;
   display: flex;
   justify-content: center;
   border-radius: 6px;
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+  transition: opacity 0.2s ease;
+  will-change: transform, opacity;
   opacity: ${(props) => (props.alive ? 1 : 0.62)};
   filter: ${(props) => (props.alive ? "none" : "grayscale(0.65)")};
   animation: ${(props) => {
     if (props.animationType === "attacker")
       return css`
-        ${attackerPulse} 0.65s ease
+        ${attackerPulse} ${props.attackDurationMs}ms ease
       `;
     if (props.animationType === "target")
       return css`
-        ${targetShake} 0.5s ease
+        ${targetShake} ${props.targetDurationMs}ms ease
       `;
     if (props.animationType === "faint")
       return css`
-        ${faintDrop} 0.55s ease forwards
+        ${faintDrop} ${props.faintDurationMs}ms linear forwards
       `;
     return css`
       none
@@ -408,6 +418,38 @@ function getSlotAnimationType(
   return "none";
 }
 
+function getDelayBeforeNextEvent(
+  currentIndex: number,
+  events: CombatEvent[],
+  defaultDelayMs: number,
+  attackDurationMs: number,
+  faintDurationMs: number,
+  postAttackBufferMs: number,
+): number {
+  if (currentIndex < 0) {
+    return defaultDelayMs;
+  }
+
+  const currentEvent = events[currentIndex];
+  const nextEvent = events[currentIndex + 1];
+
+  if (!nextEvent) {
+    return defaultDelayMs;
+  }
+
+  // Attack -> faint should start right after attack completes (plus one tiny frame buffer).
+  if (currentEvent.type === "attack" && nextEvent.type === "faint") {
+    return attackDurationMs + postAttackBufferMs;
+  }
+
+  // Multiple faints in sequence should also flow without extra pause.
+  if (currentEvent.type === "faint" && nextEvent.type === "faint") {
+    return faintDurationMs;
+  }
+
+  return defaultDelayMs;
+}
+
 export function CombatComponent({
   teamA,
   teamB,
@@ -436,6 +478,37 @@ export function CombatComponent({
     () => BASE_STEP_MS / playbackSpeed,
     [playbackSpeed],
   );
+  const attackDurationMs = useMemo(
+    () => ATTACK_ANIMATION_MS / playbackSpeed,
+    [playbackSpeed],
+  );
+  const targetDurationMs = useMemo(
+    () => TARGET_SHAKE_MS / playbackSpeed,
+    [playbackSpeed],
+  );
+  const faintDurationMs = useMemo(
+    () => FAINT_ANIMATION_MS / playbackSpeed,
+    [playbackSpeed],
+  );
+  const delayBeforeNextEventMs = useMemo(
+    () =>
+      getDelayBeforeNextEvent(
+        eventIndex,
+        result.events,
+        stepIntervalMs,
+        attackDurationMs,
+        faintDurationMs,
+        POST_ATTACK_BUFFER_MS / playbackSpeed,
+      ),
+    [
+      eventIndex,
+      result.events,
+      stepIntervalMs,
+      attackDurationMs,
+      faintDurationMs,
+      playbackSpeed,
+    ],
+  );
 
   useEffect(() => {
     if (!playing || result.events.length === 0) {
@@ -445,7 +518,7 @@ export function CombatComponent({
       return;
     }
 
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setEventIndex((current) => {
         const next = Math.min(current + 1, result.events.length - 1);
         if (next >= result.events.length - 1) {
@@ -453,17 +526,23 @@ export function CombatComponent({
         }
         return next;
       });
-    }, stepIntervalMs);
+    }, delayBeforeNextEventMs);
 
-    return () => window.clearInterval(timer);
-  }, [eventIndex, playing, result.events.length, stepIntervalMs]);
+    return () => window.clearTimeout(timer);
+  }, [delayBeforeNextEventMs, eventIndex, playing, result.events.length]);
 
-  const board = useMemo(
-    () => buildBoardState(teamA, teamB, result.events, eventIndex + 1),
-    [teamA, teamB, result.events, eventIndex],
-  );
-  const laneCount = board.teamA.length;
   const currentEvent = eventIndex >= 0 ? result.events[eventIndex] : null;
+  const board = useMemo(() => {
+    if (eventIndex < 0) {
+      return buildBoardState(teamA, teamB, result.events, 0);
+    }
+
+    const appliedEventCount =
+      currentEvent?.type === "attack" ? eventIndex : eventIndex + 1;
+
+    return buildBoardState(teamA, teamB, result.events, appliedEventCount);
+  }, [teamA, teamB, result.events, eventIndex, currentEvent?.type]);
+  const laneCount = board.teamA.length;
 
   useLayoutEffect(() => {
     if (eventIndex < 0 || currentEvent?.type !== "attack") {
@@ -609,6 +688,9 @@ export function CombatComponent({
                               <AnimatedCardFrame
                                 alive={unit.alive}
                                 animationType={animationType}
+                                attackDurationMs={attackDurationMs}
+                                targetDurationMs={targetDurationMs}
+                                faintDurationMs={faintDurationMs}
                                 data-testid={`${teamKey}-lane-${laneIndex}-slot-${slotIndex}`}
                                 ref={(node) => {
                                   slotRefs.current[slotKey] = node;
