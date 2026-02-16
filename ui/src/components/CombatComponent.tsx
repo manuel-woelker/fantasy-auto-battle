@@ -1,6 +1,13 @@
 import { css, keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { CardComponent } from "./CardComponent";
 import type { CombatEvent, CombatResult } from "../shared/combat";
 import type { CombatantRef } from "../shared/combat/battle-computer";
@@ -20,6 +27,14 @@ interface UnitView {
   alive: boolean;
 }
 
+interface AttackMotionState {
+  attackerKey: string;
+  eventIndex: number;
+  dx: number;
+  dy: number;
+  tiltDeg: number;
+}
+
 type TeamKey = "teamA" | "teamB";
 type SlotAnimation = "none" | "attacker" | "target" | "faint";
 
@@ -29,7 +44,15 @@ const BASE_STEP_MS = 800;
 
 const attackerPulse = keyframes`
   0% { transform: translateX(0) scale(1); box-shadow: 0 0 0 rgba(255, 92, 74, 0); }
-  40% { transform: translateX(3px) scale(1.04); box-shadow: 0 0 0 7px rgba(255, 92, 74, 0.16); }
+  58% {
+    transform: translate(var(--attack-dx, 0px), var(--attack-dy, 0px)) rotate(var(--attack-tilt, 0deg)) scale(1.02);
+    box-shadow: 0 0 0 7px rgba(255, 92, 74, 0.15);
+  }
+  67% {
+    transform: translate(calc(var(--attack-dx, 0px) * 1.08), calc(var(--attack-dy, 0px) * 1.08))
+      rotate(calc(var(--attack-tilt, 0deg) * 0.75)) scale(1.01);
+  }
+  76% { transform: translate(var(--attack-dx, 0px), var(--attack-dy, 0px)) rotate(var(--attack-tilt, 0deg)) scale(1.02); }
   100% { transform: translateX(0) scale(1); box-shadow: 0 0 0 rgba(255, 92, 74, 0); }
 `;
 
@@ -201,14 +224,6 @@ const AnimatedCardFrame = styled.div<{
   }};
 `;
 
-const CardState = styled.span<{ alive: boolean }>`
-  font-size: 11px;
-  color: ${(props) => (props.alive ? "#2c6d37" : "#8b3f32")};
-  font-weight: 600;
-  display: inline-block;
-  margin-top: 6px;
-`;
-
 const EmptySlot = styled.div`
   height: 100%;
   display: flex;
@@ -219,31 +234,12 @@ const EmptySlot = styled.div`
   font-style: italic;
 `;
 
-const EventLog = styled.ol`
-  margin: 0;
-  padding: 0 0 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 220px;
-  overflow-y: auto;
-`;
-
-const EventItem = styled.li<{ state: "past" | "active" | "future" }>`
-  font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 5px;
-  color: ${(props) => {
-    if (props.state === "active") return "#2b1f10";
-    if (props.state === "past") return "#4d3f2e";
-    return "#8a7761";
-  }};
-  background-color: ${(props) =>
-    props.state === "active" ? "rgba(243, 218, 154, 0.55)" : "transparent"};
-`;
-
 function normalizeSpeed(speed: number): number {
   return Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed));
+}
+
+function buildSlotKey(team: TeamKey, lane: number, slot: number): string {
+  return `${team}:${lane}:${slot}`;
 }
 
 function buildRefKey(ref: CombatantRef): string {
@@ -413,13 +409,6 @@ function getSlotAnimationType(
   return "none";
 }
 
-function describeEvent(event: CombatEvent): string {
-  if (event.type === "attack") {
-    return `${event.attacker.team} L${event.attacker.lane + 1}S${event.attacker.slot + 1} attacks ${event.target.team} L${event.target.lane + 1}S${event.target.slot + 1} (${event.damageToTarget}/${event.damageToAttacker})`;
-  }
-  return `${event.target.team} L${event.target.lane + 1}S${event.target.slot + 1} faints`;
-}
-
 export function CombatComponent({
   teamA,
   teamB,
@@ -430,6 +419,10 @@ export function CombatComponent({
   const [eventIndex, setEventIndex] = useState(-1);
   const [playing, setPlaying] = useState(autoPlay);
   const [playbackSpeed, setPlaybackSpeed] = useState(normalizeSpeed(speed));
+  const [attackMotion, setAttackMotion] = useState<AttackMotionState | null>(
+    null,
+  );
+  const slotRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     setEventIndex(-1);
@@ -472,6 +465,69 @@ export function CombatComponent({
   );
   const laneCount = board.teamA.length;
   const currentEvent = eventIndex >= 0 ? result.events[eventIndex] : null;
+
+  useLayoutEffect(() => {
+    if (eventIndex < 0 || currentEvent?.type !== "attack") {
+      setAttackMotion(null);
+      return;
+    }
+
+    const attackerKey = buildSlotKey(
+      currentEvent.attacker.team,
+      currentEvent.attacker.lane,
+      currentEvent.attacker.slot,
+    );
+    const targetKey = buildSlotKey(
+      currentEvent.target.team,
+      currentEvent.target.lane,
+      currentEvent.target.slot,
+    );
+    const attackerNode = slotRefs.current[attackerKey];
+    const targetNode = slotRefs.current[targetKey];
+
+    if (!attackerNode || !targetNode) {
+      setAttackMotion(null);
+      return;
+    }
+
+    const attackerRect = attackerNode.getBoundingClientRect();
+    const targetRect = targetNode.getBoundingClientRect();
+    const rawDx =
+      targetRect.left +
+      targetRect.width / 2 -
+      (attackerRect.left + attackerRect.width / 2);
+    const rawDy =
+      targetRect.top +
+      targetRect.height / 2 -
+      (attackerRect.top + attackerRect.height / 2);
+    const distance = Math.hypot(rawDx, rawDy);
+
+    if (distance <= 0.01) {
+      setAttackMotion({
+        attackerKey,
+        eventIndex,
+        dx: 0,
+        dy: 0,
+        tiltDeg: 0,
+      });
+      return;
+    }
+
+    // Move until card bodies contact, then slightly overlap for visible impact.
+    const contactDistance = (attackerRect.width + targetRect.width) / 2 - 16;
+    const travelDistance = Math.max(0, distance - contactDistance);
+    const travelScale = travelDistance / distance;
+    const angleDeg = (Math.atan2(rawDy, rawDx) * 180) / Math.PI;
+    const tiltDeg = Math.max(-30, Math.min(30, angleDeg * 0.12));
+
+    setAttackMotion({
+      attackerKey,
+      eventIndex,
+      dx: rawDx * travelScale,
+      dy: rawDy * travelScale,
+      tiltDeg,
+    });
+  }, [currentEvent, eventIndex]);
 
   return (
     <Root>
@@ -530,6 +586,17 @@ export function CombatComponent({
                     <Slots>
                       {Array.from({ length: slotCount }, (_, slotIndex) => {
                         const unit = board[teamKey][laneIndex][slotIndex];
+                        const slotKey = buildSlotKey(
+                          teamKey,
+                          laneIndex,
+                          slotIndex,
+                        );
+                        const motion =
+                          attackMotion &&
+                          attackMotion.eventIndex === eventIndex &&
+                          attackMotion.attackerKey === slotKey
+                            ? attackMotion
+                            : null;
                         const animationType = getSlotAnimationType(
                           teamKey,
                           laneIndex,
@@ -541,18 +608,25 @@ export function CombatComponent({
                             {!unit ? (
                               <EmptySlot>Empty Slot</EmptySlot>
                             ) : (
-                              <>
-                                <AnimatedCardFrame
-                                  alive={unit.alive}
-                                  animationType={animationType}
-                                  data-testid={`${teamKey}-lane-${laneIndex}-slot-${slotIndex}`}
-                                >
-                                  <CardComponent card={unit.card} />
-                                </AnimatedCardFrame>
-                                <CardState alive={unit.alive}>
-                                  {unit.alive ? "Alive" : "Fainted"}
-                                </CardState>
-                              </>
+                              <AnimatedCardFrame
+                                alive={unit.alive}
+                                animationType={animationType}
+                                data-testid={`${teamKey}-lane-${laneIndex}-slot-${slotIndex}`}
+                                ref={(node) => {
+                                  slotRefs.current[slotKey] = node;
+                                }}
+                                style={
+                                  motion
+                                    ? ({
+                                        "--attack-dx": `${motion.dx}px`,
+                                        "--attack-dy": `${motion.dy}px`,
+                                        "--attack-tilt": `${motion.tiltDeg}deg`,
+                                      } as CSSProperties)
+                                    : undefined
+                                }
+                              >
+                                <CardComponent card={unit.card} />
+                              </AnimatedCardFrame>
                             )}
                           </Slot>
                         );
@@ -565,26 +639,6 @@ export function CombatComponent({
           );
         })}
       </Battlefield>
-
-      <EventLog aria-label="Combat event log">
-        {result.events.map((event, index) => {
-          const state =
-            index < eventIndex
-              ? "past"
-              : index === eventIndex
-                ? "active"
-                : "future";
-          return (
-            <EventItem
-              key={`event-${index}`}
-              state={state}
-              data-testid={`event-${index}`}
-            >
-              {index + 1}. {describeEvent(event)}
-            </EventItem>
-          );
-        })}
-      </EventLog>
     </Root>
   );
 }

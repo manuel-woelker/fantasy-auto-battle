@@ -5,11 +5,19 @@ import type { Team } from "../shared/models/team";
 import { CARDS } from "../shared/models/cards";
 
 const teamA: Team = {
-  lanes: [[{ card: CARDS[0] }, { card: CARDS[2] }], [{ card: CARDS[5] }]],
+  lanes: [
+    [{ card: CARDS[0] }, { card: CARDS[2] }],
+    [{ card: CARDS[5] }, { card: CARDS[6] }],
+    [{ card: CARDS[4] }, { card: CARDS[7] }],
+  ],
 };
 
 const teamB: Team = {
-  lanes: [[{ card: CARDS[1] }, { card: CARDS[3] }], [{ card: CARDS[8] }]],
+  lanes: [
+    [{ card: CARDS[1] }, { card: CARDS[3] }],
+    [{ card: CARDS[8] }, { card: CARDS[9] }],
+    [{ card: CARDS[2] }, { card: CARDS[0] }],
+  ],
 };
 
 const result = computeCombatResult(teamA, teamB);
