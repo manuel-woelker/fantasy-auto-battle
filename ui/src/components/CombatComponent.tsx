@@ -782,7 +782,7 @@ export function CombatComponent({
                                       durationMs={damageFloatDurationMs}
                                       delayMs={damageFloatDelayMs}
                                     >
-                                      -{damageTaken}
+                                      {damageTaken}
                                     </DamageText>
                                   </DamageIndicator>
                                 ) : null}
@@ -822,7 +822,7 @@ export function CombatComponent({
                                         durationMs={damageFloatDurationMs}
                                         delayMs={damageFloatDelayMs}
                                       >
-                                        -{damageTaken}
+                                        {damageTaken}
                                       </DamageText>
                                     </DamageIndicator>
                                   ) : null}

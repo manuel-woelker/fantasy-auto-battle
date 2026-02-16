@@ -105,10 +105,10 @@ describe("CombatComponent", () => {
     );
     expect(within(defenderSlot).getByText("🛡 2")).toBeInTheDocument();
     expect(screen.getByTestId("damage-teamB-0-0")).toHaveTextContent(
-      `-${teamA.lanes[0][0].card?.attack}`,
+      `${teamA.lanes[0][0].card?.attack}`,
     );
     expect(screen.getByTestId("damage-teamA-0-0")).toHaveTextContent(
-      `-${teamB.lanes[0][0].card?.attack}`,
+      `${teamB.lanes[0][0].card?.attack}`,
     );
 
     act(() => {
