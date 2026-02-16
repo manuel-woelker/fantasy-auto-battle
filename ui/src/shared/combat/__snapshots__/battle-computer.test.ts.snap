@@ -106,3 +106,14 @@ exports[`computeCombatResult > should match snapshot for a complete deterministi
   "winner": "teamA",
 }
 `;
+
+exports[`computeCombatResult > should match snapshot for textual combat description 1`] = `
+"Winner: teamA
+1. ATTACK teamA[L0S0:goblin] -> teamB[L0S1:archer] (toTarget=2, toAttacker=4, targetDef=2->0, attackerDef=1->0)
+2. FAINT teamB[L0S1:archer]
+3. FAINT teamA[L0S0:goblin]
+4. ATTACK teamB[L1S0:skeleton] -> teamA[L0S1:knight] (toTarget=3, toAttacker=3, targetDef=5->2, attackerDef=2->0)
+5. FAINT teamB[L1S0:skeleton]
+6. ATTACK teamA[L1S0:priest] -> teamB[L0S0:wolf] (toTarget=2, toAttacker=3, targetDef=2->0, attackerDef=4->1)
+7. FAINT teamB[L0S0:wolf]"
+`;

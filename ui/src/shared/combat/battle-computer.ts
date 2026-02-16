@@ -153,6 +153,28 @@ export function createDeterministicRng(seed: number): Rng {
   };
 }
 
+export function describeCombatResult(result: CombatResult): string {
+  const lines: string[] = [];
+
+  lines.push(`Winner: ${result.winner}`);
+
+  result.events.forEach((event, index) => {
+    if (event.type === "attack") {
+      lines.push(
+        `${index + 1}. ATTACK ${formatCombatant(event.attacker)} -> ${formatCombatant(event.target)} ` +
+          `(toTarget=${event.damageToTarget}, toAttacker=${event.damageToAttacker}, ` +
+          `targetDef=${event.targetDefenseBefore}->${event.targetDefenseAfter}, ` +
+          `attackerDef=${event.attackerDefenseBefore}->${event.attackerDefenseAfter})`,
+      );
+      return;
+    }
+
+    lines.push(`${index + 1}. FAINT ${formatCombatant(event.target)}`);
+  });
+
+  return lines.join("\n");
+}
+
 function collectUnits(team: Team, teamKey: "teamA" | "teamB"): UnitState[] {
   const units: UnitState[] = [];
 
@@ -189,4 +211,8 @@ function resolveWinner(aliveA: number, aliveB: number): CombatWinner {
   }
 
   return "teamB";
+}
+
+function formatCombatant(combatant: CombatantRef): string {
+  return `${combatant.team}[L${combatant.lane}S${combatant.slot}:${combatant.cardId}]`;
 }

@@ -2,6 +2,7 @@ export {
   computeCombatResult,
   computeCombatResultWithRng,
   createDeterministicRng,
+  describeCombatResult,
 } from "./battle-computer";
 export type {
   AttackCombatEvent,

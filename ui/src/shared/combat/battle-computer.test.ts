@@ -5,6 +5,7 @@ import {
   computeCombatResult,
   computeCombatResultWithRng,
   createDeterministicRng,
+  describeCombatResult,
   type Rng,
 } from "./battle-computer";
 
@@ -155,5 +156,18 @@ describe("computeCombatResult", () => {
 
     const result = computeCombatResult(teamA, teamB);
     expect(result).toMatchSnapshot();
+  });
+
+  it("should match snapshot for textual combat description", () => {
+    const teamA: Team = {
+      lanes: [[{ card: CARDS[0] }, { card: CARDS[2] }], [{ card: CARDS[5] }]],
+    };
+    const teamB: Team = {
+      lanes: [[{ card: CARDS[1] }, { card: CARDS[3] }], [{ card: CARDS[8] }]],
+    };
+
+    const result = computeCombatResult(teamA, teamB);
+    const description = describeCombatResult(result);
+    expect(description).toMatchSnapshot();
   });
 });
