@@ -104,6 +104,12 @@ describe("CombatComponent", () => {
       `Step: 1 / ${result.events.length}`,
     );
     expect(within(defenderSlot).getByText("🛡 2")).toBeInTheDocument();
+    expect(screen.getByTestId("damage-teamB-0-0")).toHaveTextContent(
+      `-${teamA.lanes[0][0].card?.attack}`,
+    );
+    expect(screen.getByTestId("damage-teamA-0-0")).toHaveTextContent(
+      `-${teamB.lanes[0][0].card?.attack}`,
+    );
 
     act(() => {
       vi.advanceTimersByTime(220);
@@ -112,6 +118,8 @@ describe("CombatComponent", () => {
       `Step: 2 / ${result.events.length}`,
     );
     expect(within(defenderSlot).getByText("🛡 0")).toBeInTheDocument();
+    expect(screen.queryByTestId("damage-teamB-0-0")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("damage-teamA-0-0")).not.toBeInTheDocument();
   });
 
   it("uses the configured speed for playback interval", () => {
