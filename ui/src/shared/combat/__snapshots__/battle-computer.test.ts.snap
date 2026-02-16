@@ -1,0 +1,108 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`computeCombatResult > should match snapshot for a complete deterministic battle 1`] = `
+{
+  "events": [
+    {
+      "attacker": {
+        "cardId": "goblin",
+        "lane": 0,
+        "slot": 0,
+        "team": "teamA",
+      },
+      "attackerDefenseAfter": 0,
+      "attackerDefenseBefore": 1,
+      "damageToAttacker": 4,
+      "damageToTarget": 2,
+      "target": {
+        "cardId": "archer",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamB",
+      },
+      "targetDefenseAfter": 0,
+      "targetDefenseBefore": 2,
+      "type": "attack",
+    },
+    {
+      "target": {
+        "cardId": "archer",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamB",
+      },
+      "type": "faint",
+    },
+    {
+      "target": {
+        "cardId": "goblin",
+        "lane": 0,
+        "slot": 0,
+        "team": "teamA",
+      },
+      "type": "faint",
+    },
+    {
+      "attacker": {
+        "cardId": "skeleton",
+        "lane": 1,
+        "slot": 0,
+        "team": "teamB",
+      },
+      "attackerDefenseAfter": 0,
+      "attackerDefenseBefore": 2,
+      "damageToAttacker": 3,
+      "damageToTarget": 3,
+      "target": {
+        "cardId": "knight",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamA",
+      },
+      "targetDefenseAfter": 2,
+      "targetDefenseBefore": 5,
+      "type": "attack",
+    },
+    {
+      "target": {
+        "cardId": "skeleton",
+        "lane": 1,
+        "slot": 0,
+        "team": "teamB",
+      },
+      "type": "faint",
+    },
+    {
+      "attacker": {
+        "cardId": "priest",
+        "lane": 1,
+        "slot": 0,
+        "team": "teamA",
+      },
+      "attackerDefenseAfter": 1,
+      "attackerDefenseBefore": 4,
+      "damageToAttacker": 3,
+      "damageToTarget": 2,
+      "target": {
+        "cardId": "wolf",
+        "lane": 0,
+        "slot": 0,
+        "team": "teamB",
+      },
+      "targetDefenseAfter": 0,
+      "targetDefenseBefore": 2,
+      "type": "attack",
+    },
+    {
+      "target": {
+        "cardId": "wolf",
+        "lane": 0,
+        "slot": 0,
+        "team": "teamB",
+      },
+      "type": "faint",
+    },
+  ],
+  "winner": "teamA",
+}
+`;

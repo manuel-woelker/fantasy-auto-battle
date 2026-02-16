@@ -51,3 +51,25 @@ Each card slot stores a full `card` object or `null` when the slot is empty.
 **Why store the full card object instead of only a `cardId`?**
 
 Card values can change during gameplay, so the slot should reference the live card state.
+
+# Combat result data model
+
+**What is the output of a battle simulation?**
+
+The simulation returns a `CombatResult`.
+
+**What fields does `CombatResult` contain?**
+
+It has a `winner` (`teamA`, `teamB`, or `draw`) and an `events` array.
+
+**What are `CombatEvents`?**
+
+`CombatEvents` are a chronological list of everything that happened during combat.
+
+**Which combat events are modeled currently?**
+
+Currently only `attack` and `faint` events are modeled.
+
+**How is attack damage applied?**
+
+Attack damage is simultaneous: attacker and defender both deal their attack value during the same `attack` event.
