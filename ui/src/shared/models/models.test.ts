@@ -10,6 +10,8 @@ import {
   validateCard,
   validateCards,
   isValidCard,
+  validateTeam,
+  isValidTeam,
 } from "./index";
 
 describe("Card Types", () => {
@@ -271,5 +273,56 @@ describe("CARDS_BY_ID", () => {
       expect(CARDS_BY_ID[card.id]).toBeDefined();
       expect(CARDS_BY_ID[card.id]).toEqual(card);
     }
+  });
+});
+
+describe("Team model", () => {
+  it("should validate a team with 3 lanes and 2 card slots per lane", () => {
+    const team = {
+      lanes: [
+        [{ card: CARDS[0] }, { card: null }],
+        [{ card: CARDS[2] }, { card: CARDS[3] }],
+        [{ card: null }, { card: CARDS[5] }],
+      ],
+    };
+
+    const result = validateTeam(team);
+    expect(result.lanes).toHaveLength(3);
+    expect(result.lanes[0]).toHaveLength(2);
+    expect(result.lanes[1]).toHaveLength(2);
+    expect(result.lanes[2]).toHaveLength(2);
+  });
+
+  it("should allow dynamic lane and slot counts", () => {
+    const dynamicTeam = {
+      lanes: [
+        [{ card: null }, { card: null }],
+        [{ card: null }, { card: CARDS[0] }, { card: CARDS[1] }],
+      ],
+    };
+
+    expect(isValidTeam(dynamicTeam)).toBe(true);
+  });
+
+  it("should accept card as null or a valid card object", () => {
+    expect(
+      isValidTeam({
+        lanes: [
+          [{ card: null }, { card: CARDS[4] }],
+          [{ card: CARDS[1] }, { card: null }],
+          [{ card: CARDS[5] }, { card: CARDS[2] }],
+        ],
+      }),
+    ).toBe(true);
+
+    expect(
+      isValidTeam({
+        lanes: [
+          [{ card: { id: "invalid-card" } }, { card: CARDS[4] }],
+          [{ card: CARDS[1] }, { card: null }],
+          [{ card: CARDS[5] }, { card: CARDS[2] }],
+        ],
+      }),
+    ).toBe(false);
   });
 });

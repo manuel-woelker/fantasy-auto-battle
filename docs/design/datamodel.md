@@ -29,3 +29,25 @@ Behaviours consist of two parts:
 
 Triggers and effects can be parametrized to only affect certain types or cards.
 They can also be "stacked", meaning that they can be triggered multiple times, with corresponding effects.
+
+# Team data model
+
+**What does the data model for a team look like?**
+
+A team has an array of lanes.
+
+**What does each lane contain?**
+
+Each lane has an array of card slots.
+
+**Why are lanes and card slots arrays instead of fixed-size tuples?**
+
+Mods or effects may change team geometry during gameplay, so the model stays dynamic.
+
+**What is stored in a card slot?**
+
+Each card slot stores a full `card` object or `null` when the slot is empty.
+
+**Why store the full card object instead of only a `cardId`?**
+
+Card values can change during gameplay, so the slot should reference the live card state.
