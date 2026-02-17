@@ -6,6 +6,7 @@ describe("parseCardsMarkdown", () => {
     const markdown = [
       "## Ember Fox | 4/2 | Common",
       "![Ember Fox](https://cdn.example.com/cards/ember-fox.png)",
+      "> It nests in warm chimneys and mistakes sparks for constellations.",
       "",
       "## Stone Guardian | 2/8 | rare",
       "![Stone Guardian](https://cdn.example.com/cards/stone-guardian.png)",
@@ -20,6 +21,8 @@ describe("parseCardsMarkdown", () => {
       attack: 4,
       defense: 2,
       rarity: "common",
+      description:
+        "It nests in warm chimneys and mistakes sparks for constellations.",
       image: "https://cdn.example.com/cards/ember-fox.png",
       sourceFile: "cards/core.md",
       types: ["unknown"],
@@ -32,6 +35,7 @@ describe("parseCardsMarkdown", () => {
       attack: 2,
       defense: 8,
       rarity: "rare",
+      description: undefined,
       image: "https://cdn.example.com/cards/stone-guardian.png",
       sourceFile: "cards/core.md",
     });

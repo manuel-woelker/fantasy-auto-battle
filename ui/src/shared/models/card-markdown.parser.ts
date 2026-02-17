@@ -4,6 +4,7 @@ import { validateCards } from "./card.schema";
 const CARD_HEADING_PATTERN =
   /^##\s+(.+?)\s*\|\s*(\d+)\s*\/\s*(\d+)\s*\|\s*([A-Za-z][A-Za-z -]*)\s*$/;
 const CARD_IMAGE_PATTERN = /^!\[(.+?)\]\((https?:\/\/[^\s)]+)\)\s*$/;
+const CARD_FLAVOR_PATTERN = /^>\s*(.+\S)\s*$/;
 const SUPPORTED_RARITIES: readonly Rarity[] = [
   "common",
   "uncommon",
@@ -83,12 +84,15 @@ export function parseCardsMarkdown(
       );
     }
 
+    const flavorLine = lines[i + 2];
+    const flavorMatch = flavorLine?.match(CARD_FLAVOR_PATTERN);
     const baseId = toCardId(name);
     const card: Card = {
       id: ensureUniqueId(baseId, usedIds),
       name: name.trim(),
       attack: Number.parseInt(attackText, 10),
       defense: Number.parseInt(defenseText, 10),
+      description: flavorMatch?.[1].trim(),
       image: imageUrl,
       sourceFile,
       types: ["unknown"],
@@ -98,7 +102,7 @@ export function parseCardsMarkdown(
     };
 
     cards.push(card);
-    i += 1;
+    i += flavorMatch ? 2 : 1;
   }
 
   return validateCards(cards);

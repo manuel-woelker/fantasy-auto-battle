@@ -10,6 +10,7 @@ Each card is represented by:
 
 1. A level 2 heading (`##`) containing name, attack, defense, and rarity.
 2. An image markdown link containing the card image URL.
+3. Optional flavor text as a markdown blockquote.
 
 **What is the required heading format?**
 
@@ -40,18 +41,31 @@ Rules:
 - `<ImageUrl>` is an absolute URL (`https://...`) to the card image.
 - The alt text should match `<Name>`.
 
+**How is flavor text represented?**
+
+Flavor text is optional.
+If present, place it directly after the image line using markdown blockquote syntax:
+
+```md
+> <FlavorText>
+```
+
+Rules:
+
+- `<FlavorText>` is a non-empty single line.
+- Flavor text is parsed into `Card.description`.
+
 **How are multiple cards represented in one file?**
 
-Repeat the same two-line pattern for each card.
+Repeat the same two-line or three-line pattern for each card.
 Leave one blank line between cards.
 
 ```md
 ## Ember Fox | 4/2 | Common
 ![Ember Fox](https://cdn.example.com/cards/ember-fox.png)
+> It nests in warm chimneys and mistakes sparks for constellations.
 
 ## Stone Guardian | 2/8 | Rare
 ![Stone Guardian](https://cdn.example.com/cards/stone-guardian.png)
-
-## Storm Oracle | 7/5 | Epic
-![Storm Oracle](https://cdn.example.com/cards/storm-oracle.png)
+> Moss writes weather reports across its shoulders.
 ```
