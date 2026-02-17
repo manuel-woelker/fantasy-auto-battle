@@ -73,6 +73,13 @@ const UpperHalf = styled.div`
   font-size: 12px;
   font-style: italic;
   margin-bottom: 6px;
+  overflow: hidden;
+`;
+
+const CardArt = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const LowerHalf = styled.div`
@@ -116,7 +123,13 @@ export function CardComponent({ card }: CardComponentProps) {
           <Stat type="defense">🛡 {card.defense}</Stat>
         </StatsContainer>
       </Header>
-      <UpperHalf>[Art placeholder]</UpperHalf>
+      <UpperHalf>
+        {card.image ? (
+          <CardArt src={card.image} alt={card.name} loading="lazy" />
+        ) : (
+          "[Art placeholder]"
+        )}
+      </UpperHalf>
       <LowerHalf>
         <TypesContainer>
           {card.types.map((type) => (
