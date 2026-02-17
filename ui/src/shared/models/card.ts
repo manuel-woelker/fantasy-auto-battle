@@ -6,6 +6,8 @@ export interface Card {
   description?: string;
   attack: number;
   defense: number;
+  image?: string;
+  sourceFile?: string;
   types: string[];
   rarity: Rarity;
   keywords: string[];

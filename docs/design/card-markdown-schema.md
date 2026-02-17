@@ -25,7 +25,7 @@ Rules:
 - `<Attack>` is a non-negative integer.
 - `<Defense>` is a non-negative integer.
 - Attack and defense are positional in `<Attack>/<Defense>` (first is attack, second is defense).
-- `<Rarity>` is a non-empty string (for example `Common`, `Rare`, `Epic`, `Legendary`).
+- `<Rarity>` must be one of: `Common`, `Uncommon`, `Rare`, `Legendary`.
 
 **What is the required image format?**
 

@@ -69,6 +69,8 @@ export const CardSchema = z.object({
   description: z.string().optional(),
   attack: z.number().int().min(0),
   defense: z.number().int().min(0),
+  image: z.string().url().optional(),
+  sourceFile: z.string().min(1).optional(),
   types: z.array(z.string()).min(1),
   rarity: RaritySchema,
   keywords: z.array(z.string()),
