@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CARDS } from "../models";
+import type { Card } from "../models/card";
 import type { Team } from "../models/team";
 import {
   computeCombatResult,
@@ -28,6 +29,19 @@ class SequenceRng implements Rng {
 function createSingleCardTeam(cardIndex: number): Team {
   return {
     lanes: [[{ card: CARDS[cardIndex] }]],
+  };
+}
+
+function createTestCard(id: string, attack: number, defense: number): Card {
+  return {
+    id,
+    name: id,
+    attack,
+    defense,
+    types: ["test"],
+    rarity: "common",
+    keywords: [],
+    behaviors: [],
   };
 }
 
@@ -115,8 +129,12 @@ describe("computeCombatResult", () => {
   });
 
   it("should faint both units when they kill each other", () => {
-    const teamA = createSingleCardTeam(6);
-    const teamB = createSingleCardTeam(0);
+    const teamA: Team = {
+      lanes: [[{ card: createTestCard("test-a", 3, 3) }]],
+    };
+    const teamB: Team = {
+      lanes: [[{ card: createTestCard("test-b", 3, 3) }]],
+    };
 
     const result = computeCombatResultWithRng(
       teamA,
@@ -132,7 +150,7 @@ describe("computeCombatResult", () => {
         team: "teamB",
         lane: 0,
         slot: 0,
-        cardId: CARDS[0].id,
+        cardId: "test-b",
       },
     });
     expect(result.events[2]).toEqual({
@@ -141,7 +159,7 @@ describe("computeCombatResult", () => {
         team: "teamA",
         lane: 0,
         slot: 0,
-        cardId: CARDS[6].id,
+        cardId: "test-a",
       },
     });
   });

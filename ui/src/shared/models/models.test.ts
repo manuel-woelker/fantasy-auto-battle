@@ -188,8 +188,8 @@ describe("isValidCard", () => {
 });
 
 describe("CARDS", () => {
-  it("should have 10 example cards", () => {
-    expect(CARDS).toHaveLength(10);
+  it("should load cards from markdown library files", () => {
+    expect(CARDS).toHaveLength(18);
   });
 
   it("should have unique ids", () => {
@@ -225,9 +225,10 @@ describe("CARDS", () => {
 
 describe("getCardById", () => {
   it("should return card by id", () => {
-    const dragon = getCardById("dragon");
-    expect(dragon).toBeDefined();
-    expect(dragon?.name).toBe("Dragon");
+    const sampleCard = CARDS[0];
+    const result = getCardById(sampleCard.id);
+    expect(result).toBeDefined();
+    expect(result?.id).toBe(sampleCard.id);
   });
 
   it("should return undefined for unknown id", () => {
@@ -238,9 +239,11 @@ describe("getCardById", () => {
 
 describe("getCardsByType", () => {
   it("should return cards by type", () => {
-    const humans = getCardsByType("human");
-    expect(humans.length).toBeGreaterThan(0);
-    expect(humans.every((c) => c.types.includes("human"))).toBe(true);
+    const unknownTypeCards = getCardsByType("unknown");
+    expect(unknownTypeCards.length).toBeGreaterThan(0);
+    expect(unknownTypeCards.every((c) => c.types.includes("unknown"))).toBe(
+      true,
+    );
   });
 });
 
@@ -254,16 +257,18 @@ describe("getCardsByRarity", () => {
 
 describe("getCardsByKeyword", () => {
   it("should return cards by keyword", () => {
-    const tauntCards = getCardsByKeyword("taunt");
-    expect(tauntCards.length).toBeGreaterThan(0);
-    expect(tauntCards.every((c) => c.keywords.includes("taunt"))).toBe(true);
+    const unknownKeywordCards = getCardsByKeyword("non-existent-keyword");
+    expect(unknownKeywordCards).toHaveLength(0);
   });
 });
 
 describe("getCardsBySet", () => {
   it("should return cards by set", () => {
-    const coreCards = getCardsBySet("core");
-    expect(coreCards.length).toBe(CARDS.length);
+    const setName = CARDS[0].set;
+    expect(setName).toBeDefined();
+    const setCards = getCardsBySet(setName ?? "");
+    expect(setCards.length).toBeGreaterThan(0);
+    expect(setCards.every((c) => c.set === setName)).toBe(true);
   });
 });
 

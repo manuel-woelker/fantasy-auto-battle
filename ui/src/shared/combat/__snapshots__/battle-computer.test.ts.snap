@@ -5,115 +5,115 @@ exports[`computeCombatResult > should match snapshot for a complete deterministi
   "events": [
     {
       "attacker": {
-        "cardId": "goblin",
+        "cardId": "brine-archivist",
         "lane": 0,
         "slot": 0,
         "team": "teamA",
       },
       "attackerDefenseAfter": 0,
-      "attackerDefenseBefore": 1,
-      "damageToAttacker": 4,
+      "attackerDefenseBefore": 4,
+      "damageToAttacker": 7,
       "damageToTarget": 2,
       "target": {
-        "cardId": "archer",
+        "cardId": "kelpwright-locomotive",
         "lane": 0,
         "slot": 1,
         "team": "teamB",
       },
-      "targetDefenseAfter": 0,
-      "targetDefenseBefore": 2,
-      "type": "attack",
-    },
-    {
-      "target": {
-        "cardId": "archer",
-        "lane": 0,
-        "slot": 1,
-        "team": "teamB",
-      },
-      "type": "faint",
-    },
-    {
-      "target": {
-        "cardId": "goblin",
-        "lane": 0,
-        "slot": 0,
-        "team": "teamA",
-      },
-      "type": "faint",
-    },
-    {
-      "attacker": {
-        "cardId": "skeleton",
-        "lane": 1,
-        "slot": 0,
-        "team": "teamB",
-      },
-      "attackerDefenseAfter": 0,
-      "attackerDefenseBefore": 2,
-      "damageToAttacker": 3,
-      "damageToTarget": 3,
-      "target": {
-        "cardId": "knight",
-        "lane": 0,
-        "slot": 1,
-        "team": "teamA",
-      },
-      "targetDefenseAfter": 2,
+      "targetDefenseAfter": 3,
       "targetDefenseBefore": 5,
       "type": "attack",
     },
     {
       "target": {
-        "cardId": "skeleton",
-        "lane": 1,
+        "cardId": "brine-archivist",
+        "lane": 0,
         "slot": 0,
+        "team": "teamA",
+      },
+      "type": "faint",
+    },
+    {
+      "attacker": {
+        "cardId": "kelpwright-locomotive",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamB",
+      },
+      "attackerDefenseAfter": 0,
+      "attackerDefenseBefore": 3,
+      "damageToAttacker": 3,
+      "damageToTarget": 7,
+      "target": {
+        "cardId": "coral-surveyor",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamA",
+      },
+      "targetDefenseAfter": 0,
+      "targetDefenseBefore": 3,
+      "type": "attack",
+    },
+    {
+      "target": {
+        "cardId": "coral-surveyor",
+        "lane": 0,
+        "slot": 1,
+        "team": "teamA",
+      },
+      "type": "faint",
+    },
+    {
+      "target": {
+        "cardId": "kelpwright-locomotive",
+        "lane": 0,
+        "slot": 1,
         "team": "teamB",
       },
       "type": "faint",
     },
     {
       "attacker": {
-        "cardId": "priest",
+        "cardId": "saltglass-borer",
         "lane": 1,
         "slot": 0,
         "team": "teamA",
       },
-      "attackerDefenseAfter": 1,
-      "attackerDefenseBefore": 4,
-      "damageToAttacker": 3,
-      "damageToTarget": 2,
+      "attackerDefenseAfter": 0,
+      "attackerDefenseBefore": 2,
+      "damageToAttacker": 6,
+      "damageToTarget": 5,
       "target": {
-        "cardId": "wolf",
+        "cardId": "cathedral-of-minnows",
         "lane": 0,
         "slot": 0,
         "team": "teamB",
       },
-      "targetDefenseAfter": 0,
-      "targetDefenseBefore": 2,
+      "targetDefenseAfter": 4,
+      "targetDefenseBefore": 9,
       "type": "attack",
     },
     {
       "target": {
-        "cardId": "wolf",
-        "lane": 0,
+        "cardId": "saltglass-borer",
+        "lane": 1,
         "slot": 0,
-        "team": "teamB",
+        "team": "teamA",
       },
       "type": "faint",
     },
   ],
-  "winner": "teamA",
+  "winner": "teamB",
 }
 `;
 
 exports[`computeCombatResult > should match snapshot for textual combat description 1`] = `
-"Winner: teamA
-1. ATTACK teamA[L0S0:goblin] -> teamB[L0S1:archer] (toTarget=2, toAttacker=4, targetDef=2->0, attackerDef=1->0)
-2. FAINT teamB[L0S1:archer]
-3. FAINT teamA[L0S0:goblin]
-4. ATTACK teamB[L1S0:skeleton] -> teamA[L0S1:knight] (toTarget=3, toAttacker=3, targetDef=5->2, attackerDef=2->0)
-5. FAINT teamB[L1S0:skeleton]
-6. ATTACK teamA[L1S0:priest] -> teamB[L0S0:wolf] (toTarget=2, toAttacker=3, targetDef=2->0, attackerDef=4->1)
-7. FAINT teamB[L0S0:wolf]"
+"Winner: teamB
+1. ATTACK teamA[L0S0:brine-archivist] -> teamB[L0S1:kelpwright-locomotive] (toTarget=2, toAttacker=7, targetDef=5->3, attackerDef=4->0)
+2. FAINT teamA[L0S0:brine-archivist]
+3. ATTACK teamB[L0S1:kelpwright-locomotive] -> teamA[L0S1:coral-surveyor] (toTarget=7, toAttacker=3, targetDef=3->0, attackerDef=3->0)
+4. FAINT teamA[L0S1:coral-surveyor]
+5. FAINT teamB[L0S1:kelpwright-locomotive]
+6. ATTACK teamA[L1S0:saltglass-borer] -> teamB[L0S0:cathedral-of-minnows] (toTarget=5, toAttacker=6, targetDef=9->4, attackerDef=2->0)
+7. FAINT teamA[L1S0:saltglass-borer]"
 `;
